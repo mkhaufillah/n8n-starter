@@ -1,0 +1,91 @@
+volumes:
+  postgres:
+  n8n:
+  redis-ext:
+  postgres-ext:
+  open-webui:
+
+
+services:
+  postgres:
+    container_name: postgres-db
+    image: postgres:latest
+    restart: always
+    environment:
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+      - POSTGRES_DB
+    volumes:
+      - postgres:/var/lib/postgresql/data
+      - ./init-data.sh:/docker-entrypoint-initdb.d/init-data.sh
+    healthcheck:
+      test: [ 'CMD-SHELL', 'pg_isready -h localhost -U ${POSTGRES_USER} -d ${POSTGRES_DB}' ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  n8n:
+    container_name: n8n-server
+    image: docker.n8n.io/n8nio/n8n:latest
+    restart: always
+    environment:
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=${POSTGRES_DB}
+      - DB_POSTGRESDB_USER=${POSTGRES_USER}
+      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
+      - GENERIC_TIMEZONE="Asia/Jakarta"
+      - TZ="Asia/Jakarta"
+      - N8N_EDITOR_BASE_URL="https://flow.filla.id"
+      - N8N_ENCRYPTION_KEY
+      - VUE_APP_URL_BASE_API="https://flow.filla.id"
+      - WEBHOOK_URL="https://flow.filla.id"
+    ports:
+      - 5678:5678
+    links:
+      - postgres
+    volumes:
+      - n8n:/home/node/.n8n
+      - './.n8n_ext_files:/home/n8n_ext_files'
+    depends_on:
+      postgres:
+        condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  waha-1:
+    container_name: waha-server-1
+    restart: always
+    image: devlikeapro/waha:latest
+    ports:
+      - '3001:3000'
+    volumes:
+      - './.sessions_waha_1:/app/.sessions'
+      - './.media_waha_1:/app/.media'
+    environment:
+      - WHATSAPP_DEFAULT_ENGINE=WEBJS
+      - WAHA_PRINT_QR=False
+      - WAHA_MEDIA_STORAGE=LOCAL
+      - WHATSAPP_FILES_LIFETIME=0
+      - WHATSAPP_FILES_FOLDER=/app/.media
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  waha-2:
+    container_name: waha-server-2
+    restart: always
+    image: devlikeapro/waha:latest
+    ports:
+      - '3002:3000'
+    volumes:
+      - './.sessions_waha_2:/app/.sessions'
+      - './.media_waha_2:/app/.media'
+    environment:
+      - WHATSAPP_DEFAULT_ENGINE=WEBJS
+      - WAHA_PRINT_QR=False
+      - WAHA_MEDIA_STORAGE=LOCAL
+      - WHATSAPP_FILES_LIFETIME=0
+      - WHATSAPP_FILES_FOLDER=/app/.media
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
