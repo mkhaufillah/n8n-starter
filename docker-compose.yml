@@ -37,10 +37,10 @@ services:
       - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
       - GENERIC_TIMEZONE="Asia/Jakarta"
       - TZ="Asia/Jakarta"
-      - N8N_EDITOR_BASE_URL="https://flow.filla.id"
+      - N8N_EDITOR_BASE_URL=${BASE_URL_N8N}
       - N8N_ENCRYPTION_KEY
-      - VUE_APP_URL_BASE_API="https://flow.filla.id"
-      - WEBHOOK_URL="https://flow.filla.id"
+      - VUE_APP_URL_BASE_API=${BASE_URL_N8N}
+      - WEBHOOK_URL=${BASE_URL_N8N}
     ports:
       - 5678:5678
     links:
@@ -89,3 +89,32 @@ services:
       - WHATSAPP_FILES_FOLDER=/app/.media
     extra_hosts:
       - "host.docker.internal:host-gateway"
+
+  redis-ext:
+    container_name: redis-ext-cache
+    image: redis:latest
+    restart: always
+    ports:
+      - 6379:6379
+    command: redis-server --save 20 1 --loglevel warning --requirepass ${REDIS_EXT_PASSWORD}
+    volumes:
+      - redis-ext:/data
+
+  postgres-ext:
+    container_name: postgres-ext-db
+    image: postgres:latest
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=${POSTGRES_EXT_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_EXT_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_EXT_DB}
+    volumes:
+      - postgres-ext:/var/lib/postgresql/data
+      - ./init-data-ext.sh:/docker-entrypoint-initdb.d/init-data.sh
+    healthcheck:
+      test: [ 'CMD-SHELL', 'pg_isready -h localhost -U ${POSTGRES_EXT_USER} -d ${POSTGRES_EXT_DB}' ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
