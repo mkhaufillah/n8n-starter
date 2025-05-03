@@ -1,10 +1,6 @@
 volumes:
   postgres:
   n8n:
-  redis-ext:
-  postgres-ext:
-  open-webui:
-
 
 services:
   postgres:
@@ -53,22 +49,3 @@ services:
         condition: service_healthy
     extra_hosts:
       - "host.docker.internal:host-gateway"
-
-  postgres-ext:
-    container_name: postgres-ext-db
-    image: postgres:latest
-    restart: always
-    ports:
-      - 5432:5432
-    environment:
-      - POSTGRES_USER=${POSTGRES_EXT_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_EXT_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_EXT_DB}
-    volumes:
-      - postgres-ext:/var/lib/postgresql/data
-      - ./init-data-ext.sh:/docker-entrypoint-initdb.d/init-data.sh
-    healthcheck:
-      test: [ 'CMD-SHELL', 'pg_isready -h localhost -U ${POSTGRES_EXT_USER} -d ${POSTGRES_EXT_DB}' ]
-      interval: 5s
-      timeout: 5s
-      retries: 10
