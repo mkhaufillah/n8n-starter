@@ -54,52 +54,6 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
-  waha-1:
-    container_name: waha-server-1
-    restart: always
-    image: devlikeapro/waha:latest
-    ports:
-      - '3001:3000'
-    volumes:
-      - './.sessions_waha_1:/app/.sessions'
-      - './.media_waha_1:/app/.media'
-    environment:
-      - WHATSAPP_DEFAULT_ENGINE=WEBJS
-      - WAHA_PRINT_QR=False
-      - WAHA_MEDIA_STORAGE=LOCAL
-      - WHATSAPP_FILES_LIFETIME=0
-      - WHATSAPP_FILES_FOLDER=/app/.media
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-
-  waha-2:
-    container_name: waha-server-2
-    restart: always
-    image: devlikeapro/waha:latest
-    ports:
-      - '3002:3000'
-    volumes:
-      - './.sessions_waha_2:/app/.sessions'
-      - './.media_waha_2:/app/.media'
-    environment:
-      - WHATSAPP_DEFAULT_ENGINE=WEBJS
-      - WAHA_PRINT_QR=False
-      - WAHA_MEDIA_STORAGE=LOCAL
-      - WHATSAPP_FILES_LIFETIME=0
-      - WHATSAPP_FILES_FOLDER=/app/.media
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-
-  redis-ext:
-    container_name: redis-ext-cache
-    image: redis:latest
-    restart: always
-    ports:
-      - 6379:6379
-    command: redis-server --save 20 1 --loglevel warning --requirepass ${REDIS_EXT_PASSWORD}
-    volumes:
-      - redis-ext:/data
-
   postgres-ext:
     container_name: postgres-ext-db
     image: postgres:latest
