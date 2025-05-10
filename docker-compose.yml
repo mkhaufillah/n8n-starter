@@ -52,7 +52,7 @@ services:
       - "host.docker.internal:host-gateway"
 
   postgresext:
-    container_name: postgres-db
+    container_name: postgres-ext-db
     image: postgres:latest
     restart: always
     environment:
